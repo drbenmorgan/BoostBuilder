@@ -1,0 +1,110 @@
+# - Boost CMake Configuration File for External Projects
+#
+# Must handle same pre-find_package variables as FindBoost does:
+#
+#  Boost_USE_MULTITHREADED  Can be set to OFF to use the non-multithreaded
+#                           Boost libraries. If not specified, default to
+#                           ON.
+#
+#  Boost_USE_STATIC_LIBS    Can be set to ON to force the use of the
+#                           static Boost libraries. Defaults to OFF.
+
+#-----------------------------------------------------------------------
+# Locate ourselves, since we can locate all other files relative to
+# where we are.
+#
+get_filename_component(__cfl_boost_config_dir "${CMAKE_CURRENT_LIST_FILE}" PATH)
+
+#-----------------------------------------------------------------------
+# Configure variables for compatibility with FindBoost
+#
+# - Boost_USE_STATIC_LIBS
+set(Boost_LINKMODEL_TAG "-shared")
+set(Boost_STATIC_LIBS_FOUND @boost.staticlibs@)
+
+if(Boost_USE_STATIC_LIBS)
+  if(Boost_STATIC_LIBS_FOUND)
+    set(Boost_LINKMODEL_TAG "-static")
+  else()
+    message(FATAL_ERROR "The found Boost installation, loaded from\n${__cfl_boost_config_dir}\n does not provide the static variants of the Boost libraries.")
+  endif()
+endif()
+
+# - Boost_USE_MULTITHREADED
+set(Boost_THREADMODEL_TAG "-multithread")
+set(Boost_MULTITHREADED_FOUND ON)
+set(Boost_SINGLETHREADED_FOUND @boost.singlethread@)
+
+if(DEFINED Boost_USE_MULTITHREADED AND NOT Boost_USE_MULTITHREADED)
+  if(Boost_SINGLETHREADED_FOUND)
+    set(Boost_THREADMODEL_TAG "-singlethread")
+  else()
+    message(FATAL_ERROR "The found Boost installation, loaded from\n${__cfl_boost_config_dir}\n does not provide the single threaded variants of the Boost libraries.")
+  endif()
+endif()
+
+#-----------------------------------------------------------------------
+# Set the header path
+#
+get_filename_component(Boost_INCLUDE_DIR "${__cfl_boost_config_dir}/../../../include" ABSOLUTE CACHE)
+set(Boost_INCLUDE_DIR "${Boost_INCLUDE_DIR}" CACHE PATH "Path to the Boost headers")
+mark_as_advanced(Boost_INCLUDE_DIR)
+set(Boost_INCLUDE_DIRS "${Boost_INCLUDE_DIR}")
+
+#-----------------------------------------------------------------------
+# Load library depends file for link/thread model requested
+#
+if(NOT Boost_LIBDEPS_LOADED)
+  include("${__cfl_boost_config_dir}/BoostLibraryDepends${Boost_LINKMODEL_TAG}${Boost_THREADMODEL_TAG}.cmake")
+  set(Boost_LIBDEPS_LOADED 1)
+endif()
+
+#-----------------------------------------------------------------------
+# Handle components as loaded by the LibraryDepends file
+#
+foreach(_boost_component ${Boost_INSTALLED_COMPONENTS})
+  # Whoops - FindBoost sets the individual lib paths using the name
+  # "Boost_NAME_{FOUND,LIBRARY}", so change cache variables to use
+  # these, and provide non-cached compatibility variables for use
+  # whilst clients update their configuration.
+  string(TOUPPER "${_boost_component}" _boost_component_upper)
+
+  set(Boost_${_boost_component_upper}_FOUND 1)
+  set(Boost_${_boost_component_upper}_LIBRARY "boost_${_boost_component}" CACHE FILEPATH "Path (imported) to the Boost ${_boost_component} library")
+
+  set(Boost_${_boost_component}_FOUND 1)
+  set(Boost_${_boost_component}_LIBRARY "${Boost_${_boost_component_upper}_LIBRARY}")
+
+  mark_as_advanced(Boost_${_boost_component_upper}_LIBRARY)
+
+  if(Boost_FIND_REQUIRED_${_boost_component})
+    list(APPEND Boost_LIBRARIES ${Boost_${_boost_component_upper}_LIBRARY})
+  endif()
+
+  if(Boost_FIND_COMPONENTS)
+    list(REMOVE_ITEM Boost_FIND_COMPONENTS ${_boost_component})
+  endif()
+endforeach()
+
+if(Boost_LIBRARIES)
+  list(REMOVE_DUPLICATES Boost_LIBRARIES)
+endif()
+
+#-----------------------------------------------------------------------
+# Finally, handle any remaining components.
+# We should have dealt with all available components above, and removed
+# them from the list of FIND_COMPONENTS so any left we either didn't
+# find or don't know about. Emit a warning if REQUIRED isn't set, or
+# FATAL_ERROR otherwise
+#
+list(REMOVE_DUPLICATES Boost_FIND_COMPONENTS)
+
+foreach(_remaining ${Boost_FIND_COMPONENTS})
+  if(Boost_FIND_REQUIRED)
+    message(FATAL_ERROR "Boost component ${_remaining} not found")
+  elseif(NOT Boost_FIND_QUIETLY)
+    message(WARNING " Boost component ${_remaining} not found")
+  endif()
+  unset(Boost_FIND_REQUIRED_${_remaining})
+endforeach()
+
