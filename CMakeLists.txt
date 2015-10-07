@@ -30,7 +30,10 @@ include(BoostBuildUtility.cmake)
 include(GNUInstallDirs)
 
 # Basic Boost Parameters
-set(Boost_VERSION 1.59.0)
+set(Boost_MAJOR_VERSION 1)
+set(Boost_MINOR_VERSION 59)
+set(Boost_SUBMINOR_VERSION 0)
+set(Boost_VERSION "${Boost_MAJOR_VERSION}.${Boost_MINOR_VERSION}.${Boost_SUBMINOR_VERSION}")
 
 # - List libraries to always build.
 # We will construct the final list in the setup phase because bootstrap

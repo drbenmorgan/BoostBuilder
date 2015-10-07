@@ -9,6 +9,7 @@
 #  function Boost_Get_ToolsetId(<var>)
 #           Set var equal to Boost's name for the CXX toolchain picked
 #           up by CMake. Only supports GNU and Clang families at present.
+#           Intel support is provisional
 #
 
 function(Boost_Get_ToolsetId _var)
@@ -22,6 +23,8 @@ function(Boost_Get_ToolsetId _var)
     endif()
   elseif(CMAKE_CXX_COMPILER_ID MATCHES ".*Clang")
     set(BOOST_TOOLSET "clang")
+  elseif(CMAKE_CXX_COMPILER_ID MATCHES "Intel")
+    set(BOOST_TOOLSET "intel")
   endif()
 
   set(${_var} ${BOOST_TOOLSET} PARENT_SCOPE)

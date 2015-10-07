@@ -51,7 +51,8 @@ $
 ```
 
 Now run `make` to download, configure, build and install Boost and support
-files:
+files (Note that install is performed at this step, there is no separate
+`make install`):
 
 ```
 $ make
@@ -162,6 +163,39 @@ As shown below, this allows selection between the different types.
 
 Using BoostBuilder's CMake Support Files
 ========================================
+BoostBuilder constructs a set of "ProjectConfig" files for use with CMake's
+[`find_package`](https://cmake.org/cmake/help/v3.3/command/find_package.html) command. These are designed to follow the interface
+of CMake's builtin [FindBoost](https://cmake.org/cmake/help/v3.3/module/FindBoost.html) module to allow easy replacement. Note
+that not all functionality is supported, in particular for Boost build
+modes such as Static Runtime, STLPort and Thread API.
+
+In most cases, projects using `FindBoost` may migrate to use of
+`BoostConfig` without any change to calls to `find_package` in their
+CMake scripts. Typical calls like
+
+```cmake
+find_package(Boost 1.58.0 REQUIRED regex)
+```
+
+will use `BoostConfig` *if it is found in CMake's search paths for config files*, and otherwise fall back to use of `FindBoost`. CMake's search
+path can be set using the `CMAKE_PREFIX_PATH` variable either via
+a `-D` command line argument to cmake, or as a UNIX PATH-style environment
+variable.
+
+Use of `BoostConfig` can be guaranteed by adding the `NO_MODULE` flag
+to the call:
+
+```cmake
+find_package(Boost 1.58.0 REQUIRED regex NO_MODULE)
+```
+
+This will cause configuration to fail if `BoostConfig` cannot be found,
+and will not fall back to using `FindBoost`.
+
+A very simple example of using CMake to build an executable against
+Boost is supplied in [example/BoostBuilderClient](example/BoostBuilderClient). Please refer to the [README](example/BoostBuilder/Client/README.md) in that project for further information.
+
+
 
 
 

@@ -4,8 +4,7 @@ project(BoostBuilderClient)
 # - Can use standard setup variables that FindBoost knows
 #set(Boost_USE_STATIC_LIBS ON)
 
-# - Same find_package interface, only difference being "NO_MODULE"
-# to switch off use of FindBoost.cmake
+# - Same find_package interface, enforcing use of BoostConfig
 find_package(Boost 1.58 REQUIRED COMPONENTS filesystem system NO_MODULE)
 
 # NB, if one wants to support *both* BoostConfig.cmake, but also allow
@@ -15,7 +14,8 @@ find_package(Boost 1.58 REQUIRED COMPONENTS filesystem system NO_MODULE)
 #  # NB: QUIET suppresses the big warning issued, and allows fallback
 #  find_package(Boost 1.58 QUIET NO_MODULE COMPONENTS filesystem system)
 #  if(NOT Boost_FOUND)
-#    # Do warn about falling back to system , this is more explicit.
+#    # Do warn about falling back to system, but can make message more
+#    # explicit/informative
 #    message(STATUS "No BoostConfig.cmake config file found, falling back to FindBoost...")
 #    # Use REQUIRED flag to fail if not found
 #    find_package(Boost 1.58 REQUIRED COMPONENTS filesystem system)

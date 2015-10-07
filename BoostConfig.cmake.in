@@ -1,6 +1,28 @@
-# - Boost CMake Configuration File for External Projects
+# - Boost CMake Configuration File to replace FindBoost
+# Use of find_package's config mode plus use if imported targets
+# provides a most robust location mechanism.
 #
-# Must handle same pre-find_package variables as FindBoost does:
+# This config file aims for compatibility with FindBoost's interface
+# and results. The following variables are set by this config file,
+# with differences from FindBoost noted:
+#
+# Boost_FOUND              True if headers and requested libraries were found
+# Boost_INCLUDE_DIRS       Boost include directories
+# Boost_LIBRARY_DIRS       Link directories for Boost libraries
+# Boost_LIBRARIES          Boost component libraries to be linked
+# Boost_<C>_FOUND          True if component <C> was found (<C> is upper-case)
+# Boost_<C>_LIBRARY        Libraries to link for component <C> (will be
+#                          an imported target)
+# Boost_VERSION            Boost's X.Y.Z version number
+#                          NB: FindBoost sets this as the value of
+#                          BOOST_VERSION in boost/version.hpp
+# Boost_MAJOR_VERSION    - Boost major version number (X in X.y.z)
+# Boost_MINOR_VERSION    - Boost minor version number (Y in x.Y.z)
+# Boost_SUBMINOR_VERSION - Boost subminor version number (Z in x.y.Z)
+#
+# As with FindBoost, several variables can be set prior to the call to
+# find_package(Boost) to influence which threading and link model
+# libraries will be searched for:
 #
 #  Boost_USE_MULTITHREADED  Can be set to OFF to use the non-multithreaded
 #                           Boost libraries. If not specified, default to
@@ -8,6 +30,25 @@
 #
 #  Boost_USE_STATIC_LIBS    Can be set to ON to force the use of the
 #                           static Boost libraries. Defaults to OFF.
+#
+# Fatal errors will be emitted (i.e. configuration failed) if the
+# requested thread/link model libs are not provided by this install of
+# Boost.
+#
+# The main departure from FindBoost is in the separation of Release
+# and Debug (and in the future, Profile) libraries. Whilst FindBoost
+# stores paths to Release and Debug libs in separate variables,
+# BoostConfig uses imported targets which store both paths and link
+# the one appropriate for the client's build mode. For example:
+#
+#  find_package(Boost 1.58.0 REQUIRED regex)
+#  add_executable(foo foo.cpp)
+#  target_link_libraries(foo ${Boost_REGEX_LIBRARY})
+#
+# would link `foo` to `libboost_regex-mt.so` when foo is built in
+# Release mode, and to `libboost_regex-mt-d.so` when foo is built in
+# Debug mode.
+#
 
 #-----------------------------------------------------------------------
 # Locate ourselves, since we can locate all other files relative to
@@ -16,7 +57,15 @@
 get_filename_component(__cfl_boost_config_dir "${CMAKE_CURRENT_LIST_FILE}" PATH)
 
 #-----------------------------------------------------------------------
-# Configure variables for compatibility with FindBoost
+# Versioning variables for compatibility with FindBoost
+#
+set(Boost_MAJOR_VERSION "@Boost_MAJOR_VERSION@")
+set(Boost_MINOR_VERSION "@Boost_MINOR_VERSION@")
+set(Boost_SUBMINOR_VERSION "@Boost_SUBMINOR_VERSION@")
+
+#-----------------------------------------------------------------------
+# Configure variables for compatibility with FindBoost's link/thread
+# model selection.
 #
 # - Boost_USE_STATIC_LIBS
 set(Boost_LINKMODEL_TAG "-shared")
@@ -63,17 +112,12 @@ endif()
 # Handle components as loaded by the LibraryDepends file
 #
 foreach(_boost_component ${Boost_INSTALLED_COMPONENTS})
-  # Whoops - FindBoost sets the individual lib paths using the name
-  # "Boost_NAME_{FOUND,LIBRARY}", so change cache variables to use
-  # these, and provide non-cached compatibility variables for use
-  # whilst clients update their configuration.
+  # Map FindBoost's 'Boost_<C>_LIBRARY' variables to the imported target
+  # names
   string(TOUPPER "${_boost_component}" _boost_component_upper)
 
   set(Boost_${_boost_component_upper}_FOUND 1)
   set(Boost_${_boost_component_upper}_LIBRARY "boost_${_boost_component}" CACHE FILEPATH "Path (imported) to the Boost ${_boost_component} library")
-
-  set(Boost_${_boost_component}_FOUND 1)
-  set(Boost_${_boost_component}_LIBRARY "${Boost_${_boost_component_upper}_LIBRARY}")
 
   mark_as_advanced(Boost_${_boost_component_upper}_LIBRARY)
 
