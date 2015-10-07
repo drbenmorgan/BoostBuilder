@@ -110,14 +110,34 @@ using the C++11 standard:
 Note that even when only dynamic libs are built, a couple of static libs
 are also built. Only a subset of all Boost libraries are built.
 
-Additional library variants can be built by setting
-the CMake variables (via command line or CCMake):
+Additional library variants can be built by setting the CMake variables (via command line or CCMake):
 
 - `boost.singlethread` : Set to `ON` (e.g. `-Dboost.singlethread=ON`) to
   build single thread mode libraries
 - `boost.staticlibs` : Set to `ON` to enable the build of all libraries
   in static mode
 - `boost.debuglibs` : Set to `ON` to build debug mode library variant
+
+By default, only the following libraries are built:
+
+- `date_time`
+- `filesystem`
+- `iostreams`
+- `math`
+- `program_options`
+- `random`
+- `serialization`
+- `system`
+- `test`
+- `thread`
+
+The following CMake options may be set to build additional libraries:
+
+- `boost.atomic` : set to `ON` to build Boost's atomic library
+- `boost.chrono` : set to `ON` to build Boost's chrono library
+- `boost.regex` : set to `ON` to build Boost's regex library
+- `boost.timer` : set to `ON` to build Boost's timer library
+- `boost.log` : set to `ON` to build Boost's log library
 
 Boost's library tagged layout is used to uniquely name each variation
 so that these can be installed alongside each other (NB this can
