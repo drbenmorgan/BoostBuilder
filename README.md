@@ -196,7 +196,17 @@ A very simple example of using CMake to build an executable against
 Boost is supplied in [example/BoostBuilderClient](example/BoostBuilderClient). Please refer to the [README](example/BoostBuilder/Client/README.md) in that project for further information.
 
 
+TODO
+====
+BoostBuilder's CMake support files do not implement all functionality possible with the imported targets
+it creates. In particular:
 
+- No [`INTERFACE_INCLUDE_DIRECTORIES`](https://cmake.org/cmake/help/v3.3/prop_tgt/INTERFACE_INCLUDE_DIRECTORIES.html) properties are set. Using this would save the user having to call `include_directories(${Boost_INCLUDE_DIRS})` explicitely.
+- No [`INTERFACE_COMPILE_FEATURES`](https://cmake.org/cmake/help/v3.3/prop_tgt/INTERFACE_COMPILE_FEATURES.html) properties are set. Using this would allow a guarantee of using the same C++ standard used to build Boost. Equally, the actual compiler/version used could also be exported to the `BoostConfig.cmake` file.
+
+Boost's `profile` build variant is not yet supported because it does not create a unique tag name for the libraries.
+
+Only CMake support files are generated, but `.pc` files for `pkg-config` support could also be added.
 
 
 
